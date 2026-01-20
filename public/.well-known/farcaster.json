@@ -19,7 +19,7 @@
   "frame": {
     "version": "1",
     "name": "Ultra Ping Pong",
-    "description": "Futuristic cyberpunk Pong game with neon aesthetics. Challenge the AI in this retro-futuristic arcade experience. Score points by getting the ball past your opponent's paddle in this classic game reimagined with stunning neon visuals and smooth gameplay.",
+    "description": "Futuristic cyberpunk Pong game with neon aesthetics. Challenge AI in this retro-futuristic arcade experience on Base.",
     "iconUrl": "https://ultra-ping-pong.vercel.app/icon.png",
     "imageUrl": "https://ultra-ping-pong.vercel.app/hero-image.svg",
     "splashImageUrl": "https://ultra-ping-pong.vercel.app/hero-image.svg",
@@ -27,7 +27,7 @@
     "homeUrl": "https://ultra-ping-pong.vercel.app/",
     "canonicalDomain": "ultra-ping-pong.vercel.app",
     "primaryCategory": "games",
-    "tags": ["pong", "arcade", "cyberpunk", "neon", "retro", "ai"],
+    "tags": ["pong", "arcade", "cyberpunk", "neon", "retro"],
     "requiredChains": ["eip155:8453"]
   }
 }
