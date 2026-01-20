@@ -2,6 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Performance optimizations */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Optimize game elements for smooth animation */
+.paddle, .ball {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
 @layer utilities {
   /* Neon Text Effects */
   .neon-cyan {

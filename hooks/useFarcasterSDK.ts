@@ -19,30 +19,39 @@ export function useFarcasterSDK() {
 
   useEffect(() => {
     const load = async () => {
-      // Farcaster SDK is loaded via script tag, available as window.farcaster
+      // Check for Farcaster SDK - it's injected by Farcaster clients
       if (typeof window !== 'undefined' && window.farcaster) {
         try {
           const ctx = await window.farcaster.context;
           setContext(ctx);
-          window.farcaster.actions.ready(); // КРИТИЧНО - сигналізує готовність
+          // CRITICAL: Signal that the app is ready - this keeps it in Farcaster app
+          window.farcaster.actions.ready();
           setIsSDKLoaded(true);
         } catch (error) {
-          console.log('Farcaster SDK error:', error);
+          // Silently handle errors - SDK might not be available in all contexts
+          console.log('Farcaster SDK not available in this context');
         }
-      } else {
-        // SDK not loaded, will use fallback methods
-        console.log('Farcaster SDK not available, using fallback methods');
       }
     };
     
-    // Wait a bit for script to load if it's being loaded
-    const timer = setTimeout(load, 100);
-    
-    // Also check immediately in case it's already loaded
+    // Try loading immediately
     load();
     
-    return () => clearTimeout(timer);
-  }, []);
+    // Also try after a short delay in case SDK loads asynchronously
+    const timer = setTimeout(load, 500);
+    
+    // Poll for SDK availability (Farcaster might inject it later)
+    const pollInterval = setInterval(() => {
+      if (typeof window !== 'undefined' && window.farcaster && !isSDKLoaded) {
+        load();
+      }
+    }, 1000);
+    
+    return () => {
+      clearTimeout(timer);
+      clearInterval(pollInterval);
+    };
+  }, [isSDKLoaded]);
 
   const openUrl = (url: string) => {
     if (isSDKLoaded && typeof window !== 'undefined' && window.farcaster) {

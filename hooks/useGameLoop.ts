@@ -126,27 +126,31 @@ export function useGameLoop(
 
   const gameLoop = useCallback(
     (currentTime: number) => {
-      if (!gameState.isPlaying || gameState.isPaused || gameState.gameOver) {
-        animationFrameRef.current = requestAnimationFrame((t) => gameLoop(t));
-        return;
-      }
+      // Always request next frame for smooth loop
+      animationFrameRef.current = requestAnimationFrame((t) => gameLoop(t));
+      
+      // Get current state from ref to avoid stale closures
+      setGameState((prevState) => {
+        // Check if game should be paused or stopped
+        if (!prevState.isPlaying || prevState.isPaused || prevState.gameOver) {
+          return prevState; // Return unchanged state
+        }
 
-      const deltaTime = currentTime - lastTimeRef.current;
-      if (deltaTime < 1000 / GAME_CONFIG.TARGET_FPS) {
-        animationFrameRef.current = requestAnimationFrame((t) => gameLoop(t));
-        return;
-      }
+        // Use fixed timestep for consistent physics
+        const deltaTime = currentTime - lastTimeRef.current;
+        if (deltaTime < 1000 / GAME_CONFIG.TARGET_FPS) {
+          return prevState; // Return unchanged state
+        }
 
-      lastTimeRef.current = currentTime;
+        lastTimeRef.current = currentTime;
 
-      setGameState((prev) => {
-        let newBall = { ...prev.ball };
-        let newPlayerPaddle = { ...prev.playerPaddle };
-        let newAiPaddle = { ...prev.aiPaddle };
-        let newPlayerScore = prev.playerScore;
-        let newAiScore = prev.aiScore;
-        let newGameOver = prev.gameOver;
-        let newWinner = prev.winner;
+        let newBall = { ...prevState.ball };
+        let newPlayerPaddle = { ...prevState.playerPaddle };
+        let newAiPaddle = { ...prevState.aiPaddle };
+        let newPlayerScore = prevState.playerScore;
+        let newAiScore = prevState.aiScore;
+        let newGameOver = prevState.gameOver;
+        let newWinner = prevState.winner;
 
         // Get canvas dimensions once
         const canvasWidth = typeof window !== 'undefined' ? window.innerWidth : 600;
@@ -235,7 +239,7 @@ export function useGameLoop(
         }
 
         return {
-          ...prev,
+          ...prevState,
           ball: newBall,
           playerPaddle: newPlayerPaddle,
           aiPaddle: newAiPaddle,
@@ -246,24 +250,21 @@ export function useGameLoop(
           isPlaying: !newGameOver,
         };
       });
-
-      animationFrameRef.current = requestAnimationFrame((t) => gameLoop(t));
     },
-    [gameState.isPlaying, gameState.isPaused, gameState.gameOver, getAIPaddleX, soundEffects]
+    [getAIPaddleX, soundEffects]
   );
 
   useEffect(() => {
-    if (gameState.isPlaying && !gameState.isPaused && !gameState.gameOver) {
-      lastTimeRef.current = performance.now();
-      animationFrameRef.current = requestAnimationFrame((t) => gameLoop(t));
-    }
+    // Always start the game loop for smooth animation
+    lastTimeRef.current = performance.now();
+    animationFrameRef.current = requestAnimationFrame((t) => gameLoop(t));
 
     return () => {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [gameState.isPlaying, gameState.isPaused, gameState.gameOver, gameLoop]);
+  }, [gameLoop]);
 
   return {
     gameState,

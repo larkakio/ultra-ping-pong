@@ -20,6 +20,15 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        
+        {/* Farcaster Meta Tags for Discovery and In-App Opening */}
+        <meta property="fc:frame" content='{"version":"1","name":"Ultra Ping Pong"}' />
+        <meta property="og:title" content="Ultra Ping Pong - Cyberpunk Pong" />
+        <meta property="og:description" content="Futuristic cyberpunk Pong game with neon aesthetics. Challenge AI in this retro-futuristic arcade experience on Base." />
+        <meta property="og:image" content="https://ultra-ping-pong.vercel.app/hero-image.svg" />
+        <meta property="og:url" content="https://ultra-ping-pong.vercel.app/" />
+        <meta property="og:type" content="website" />
+        <meta name="farcaster:app" content="ultra-ping-pong" />
         <link rel="icon" href="/icon.png" type="image/png" />
         <link rel="apple-touch-icon" href="/icon.png" />
         <link rel="manifest" href="/manifest.json" />

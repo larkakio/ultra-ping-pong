@@ -6,6 +6,7 @@ import { useGameLoop } from '@/hooks/useGameLoop';
 import { useAI } from '@/hooks/useAI';
 import { useSound } from '@/hooks/useSound';
 import { useResponsiveSize } from '@/hooks/useResponsiveSize';
+import { useFarcasterSDK } from '@/hooks/useFarcasterSDK';
 import { resetBall, type Ball } from '@/lib/physics';
 import Paddle from './Paddle';
 import BallComponent from './Ball';
@@ -17,6 +18,7 @@ import SoundToggle from './SoundToggle';
 export default function Game() {
   const soundEffects = useSound(true);
   const { canvasWidth, canvasHeight, scale, isMobile } = useResponsiveSize();
+  const { isSDKLoaded } = useFarcasterSDK(); // Initialize Farcaster SDK
   
   // Use refs to track current game state for AI
   const gameStateRef = useRef<any>(null);
@@ -57,17 +59,23 @@ export default function Game() {
   // Keyboard controls - Left/Right for vertical orientation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Handle pause/resume with SPACE
+      if (e.key === ' ' || e.key === 'Space') {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!gameState.isPlaying) {
+          startGame();
+        } else {
+          pauseGame(); // Toggle pause state
+        }
+        return;
+      }
+      
+      // Handle paddle movement
       if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
         setPlayerDirection(-1);
       } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
         setPlayerDirection(1);
-      } else if (e.key === ' ' || e.key === 'Space') {
-        e.preventDefault();
-        if (!gameState.isPlaying) {
-          startGame();
-        } else {
-          pauseGame();
-        }
       }
     };
 
@@ -189,19 +197,22 @@ export default function Game() {
 
         {/* Pause Overlay */}
         {gameState.isPaused && (
-          <div className="absolute inset-0 bg-cyber-bg/80 backdrop-blur-sm flex items-center justify-center">
+          <div className="absolute inset-0 bg-cyber-bg/80 backdrop-blur-sm flex items-center justify-center z-50">
             <div className="text-center space-y-6">
               <div className={`neon-yellow font-orbitron font-black ${isMobile ? 'text-3xl' : 'text-4xl'}`}>
                 PAUSED
               </div>
               <button
-                onClick={pauseGame}
+                onClick={() => pauseGame()}
                 className={`neon-box-yellow px-8 py-4 rounded-lg font-orbitron font-bold
                          text-cyber-yellow hover:bg-cyber-yellow/20 transition-all duration-300
                          min-h-[44px] ${isMobile ? 'text-lg' : 'text-xl'}`}
               >
                 RESUME
               </button>
+              <div className={`text-cyber-cyan/50 font-orbitron ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                Press SPACE to resume
+              </div>
             </div>
           </div>
         )}

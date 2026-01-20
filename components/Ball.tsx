@@ -50,7 +50,7 @@ export default function Ball({ ball, scale }: BallProps) {
       
       {/* Ball */}
       <div
-        className="absolute rounded-full transition-all duration-75"
+        className="absolute rounded-full ball"
         style={{
           left: `${ball.x - ball.size / 2}px`,
           top: `${ball.y - ball.size / 2}px`,
@@ -63,6 +63,9 @@ export default function Ball({ ball, scale }: BallProps) {
             0 0 30px #FFFC00,
             0 0 40px #FFFC00
           `,
+          zIndex: 15, // Ensure ball is above background but below paddles
+          willChange: 'left, top', // Optimize for animation
+          transform: 'translateZ(0)', // Force GPU acceleration
         }}
       />
     </>

@@ -11,9 +11,10 @@ interface PaddleProps {
 
 export default function Paddle({ paddle, color, glowColor, scale }: PaddleProps) {
   // Use absolute pixel positions (paddle positions are already in viewport coordinates)
+  // Remove transition for smoother, more responsive movement
   return (
     <div
-      className="absolute rounded-sm transition-all duration-75"
+      className="absolute rounded-sm paddle"
       style={{
         left: `${paddle.x}px`,
         top: `${paddle.y}px`,
@@ -27,6 +28,9 @@ export default function Paddle({ paddle, color, glowColor, scale }: PaddleProps)
           inset 0 0 10px ${glowColor}
         `,
         border: `2px solid ${color}`,
+        zIndex: 20, // Ensure paddles are visible above background and ball
+        willChange: 'left, top', // Optimize for animation
+        transform: 'translateZ(0)', // Force GPU acceleration
       }}
     />
   );
