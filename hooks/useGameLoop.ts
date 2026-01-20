@@ -149,8 +149,8 @@ export function useGameLoop(
         let newAiPaddle = { ...prevState.aiPaddle };
         let newPlayerScore = prevState.playerScore;
         let newAiScore = prevState.aiScore;
-        let newGameOver = prevState.gameOver;
-        let newWinner = prevState.winner;
+        let newGameOver: boolean = prevState.gameOver;
+        let newWinner: 'player' | 'ai' | null = prevState.winner;
 
         // Get canvas dimensions once
         const canvasWidth = typeof window !== 'undefined' ? window.innerWidth : 600;
