@@ -29,9 +29,10 @@ export function useGameLoop(
     return {
       ball: resetBall(),
       playerPaddle: {
-        // Player at bottom edge, horizontal paddle - offset from bottom to ensure visibility
+        // Player at bottom edge, horizontal paddle - larger offset from bottom to ensure visibility
+        // Account for safe area on mobile devices (home indicator, notch, etc.)
         x: canvasWidth / 2 - GAME_CONFIG.PADDLE_WIDTH / 2,
-        y: canvasHeight - GAME_CONFIG.PADDLE_HEIGHT - 10, // Offset 10px from bottom for visibility
+        y: Math.max(0, canvasHeight - GAME_CONFIG.PADDLE_HEIGHT - 30), // Offset 30px from bottom for better visibility
         width: GAME_CONFIG.PADDLE_WIDTH,
         height: GAME_CONFIG.PADDLE_HEIGHT,
       },
@@ -73,7 +74,7 @@ export function useGameLoop(
         playerPaddle: {
           ...prev.playerPaddle,
           x: canvasWidth / 2 - GAME_CONFIG.PADDLE_WIDTH / 2,
-          y: canvasHeight - GAME_CONFIG.PADDLE_HEIGHT - 10, // Offset 10px from bottom
+          y: Math.max(0, canvasHeight - GAME_CONFIG.PADDLE_HEIGHT - 30), // Offset 30px from bottom
         },
         aiPaddle: {
           ...prev.aiPaddle,
@@ -99,7 +100,7 @@ export function useGameLoop(
       playerPaddle: {
         ...prev.playerPaddle,
         x: canvasWidth / 2 - GAME_CONFIG.PADDLE_WIDTH / 2,
-        y: canvasHeight - GAME_CONFIG.PADDLE_HEIGHT - 10, // Offset 10px from bottom
+        y: Math.max(0, canvasHeight - GAME_CONFIG.PADDLE_HEIGHT - 30), // Offset 30px from bottom
       },
       aiPaddle: {
         ...prev.aiPaddle,
@@ -154,6 +155,8 @@ export function useGameLoop(
             canvasWidth - newPlayerPaddle.width
           )
         );
+        // Ensure player paddle stays at bottom with proper offset (30px from bottom)
+        newPlayerPaddle.y = Math.max(0, canvasHeight - GAME_CONFIG.PADDLE_HEIGHT - 30);
 
         // Update AI paddle (horizontal movement)
         newAiPaddle.x = getAIPaddleX(newAiPaddle.x);
