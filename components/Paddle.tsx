@@ -22,15 +22,19 @@ export default function Paddle({ paddle, color, glowColor, scale }: PaddleProps)
         height: `${paddle.height}px`,
         backgroundColor: color,
         boxShadow: `
-          0 0 10px ${glowColor},
-          0 0 20px ${glowColor},
+          0 0 15px ${glowColor},
           0 0 30px ${glowColor},
-          inset 0 0 10px ${glowColor}
+          0 0 45px ${glowColor},
+          0 0 60px ${glowColor},
+          inset 0 0 15px ${glowColor}
         `,
-        border: `2px solid ${color}`,
-        zIndex: 20, // Ensure paddles are visible above background and ball
+        border: `3px solid ${color}`,
+        zIndex: 25, // Higher z-index to ensure paddles are always visible
         willChange: 'left, top', // Optimize for animation
         transform: 'translateZ(0)', // Force GPU acceleration
+        pointerEvents: 'none', // Allow clicks to pass through to game canvas
+        // Ensure paddle is always visible with strong glow
+        opacity: 1,
       }}
     />
   );

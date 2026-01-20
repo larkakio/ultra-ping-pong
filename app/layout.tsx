@@ -28,7 +28,11 @@ export default function RootLayout({
         <meta property="og:image" content="https://ultra-ping-pong.vercel.app/hero-image.svg" />
         <meta property="og:url" content="https://ultra-ping-pong.vercel.app/" />
         <meta property="og:type" content="website" />
-        <meta name="farcaster:app" content="ultra-ping-pong" />
+        <meta name="farcaster:frame" content='{"version":"1","name":"Ultra Ping Pong"}' />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Ultra Ping Pong - Cyberpunk Pong" />
+        <meta name="twitter:description" content="Futuristic cyberpunk Pong game with neon aesthetics. Challenge AI in this retro-futuristic arcade experience on Base." />
+        <meta name="twitter:image" content="https://ultra-ping-pong.vercel.app/hero-image.svg" />
         <link rel="icon" href="/icon.png" type="image/png" />
         <link rel="apple-touch-icon" href="/icon.png" />
         <link rel="manifest" href="/manifest.json" />

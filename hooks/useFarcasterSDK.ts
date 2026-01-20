@@ -43,11 +43,12 @@ export function useFarcasterSDK() {
       }
     };
     
-    // Try loading immediately
+    // Try loading immediately - critical for Farcaster to open in-app
     load();
     
-    // Also try after a short delay in case SDK loads asynchronously
-    const timer = setTimeout(load, 500);
+    // Also try after short delays - SDK might load asynchronously
+    const timer1 = setTimeout(load, 100);
+    const timer2 = setTimeout(load, 500);
     
     // Poll for SDK availability (Farcaster might inject it later)
     let pollCount = 0;
@@ -65,7 +66,8 @@ export function useFarcasterSDK() {
     
     return () => {
       mountedRef.current = false;
-      clearTimeout(timer);
+      clearTimeout(timer1);
+      clearTimeout(timer2);
       clearInterval(pollInterval);
     };
   }, []); // Empty dependency array - only run once on mount
