@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 // Type definitions for Farcaster SDK
 declare global {
@@ -16,20 +16,29 @@ declare global {
 export function useFarcasterSDK() {
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
   const [context, setContext] = useState<any>(null);
+  const isSDKLoadedRef = useRef(false);
+  const mountedRef = useRef(true);
 
   useEffect(() => {
+    mountedRef.current = true;
+    
     const load = async () => {
       // Check for Farcaster SDK - it's injected by Farcaster clients
-      if (typeof window !== 'undefined' && window.farcaster) {
+      if (typeof window !== 'undefined' && window.farcaster && mountedRef.current && !isSDKLoadedRef.current) {
         try {
           const ctx = await window.farcaster.context;
-          setContext(ctx);
-          // CRITICAL: Signal that the app is ready - this keeps it in Farcaster app
-          window.farcaster.actions.ready();
-          setIsSDKLoaded(true);
+          if (mountedRef.current && !isSDKLoadedRef.current) {
+            setContext(ctx);
+            // CRITICAL: Signal that the app is ready - this keeps it in Farcaster app
+            window.farcaster.actions.ready();
+            isSDKLoadedRef.current = true;
+            setIsSDKLoaded(true);
+          }
         } catch (error) {
           // Silently handle errors - SDK might not be available in all contexts
-          console.log('Farcaster SDK not available in this context');
+          if (mountedRef.current) {
+            console.log('Farcaster SDK not available in this context');
+          }
         }
       }
     };
@@ -41,17 +50,25 @@ export function useFarcasterSDK() {
     const timer = setTimeout(load, 500);
     
     // Poll for SDK availability (Farcaster might inject it later)
+    let pollCount = 0;
+    const maxPolls = 10; // Limit polling to prevent infinite loops
     const pollInterval = setInterval(() => {
-      if (typeof window !== 'undefined' && window.farcaster && !isSDKLoaded) {
+      pollCount++;
+      if (pollCount >= maxPolls || isSDKLoadedRef.current) {
+        clearInterval(pollInterval);
+        return;
+      }
+      if (typeof window !== 'undefined' && window.farcaster && mountedRef.current) {
         load();
       }
     }, 1000);
     
     return () => {
+      mountedRef.current = false;
       clearTimeout(timer);
       clearInterval(pollInterval);
     };
-  }, [isSDKLoaded]);
+  }, []); // Empty dependency array - only run once on mount
 
   const openUrl = (url: string) => {
     if (isSDKLoaded && typeof window !== 'undefined' && window.farcaster) {
