@@ -14,7 +14,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <meta name="base:app_id" content="[ВАШ_APP_ID_З_BASE_DEV]" />
+        <meta name="base:app_id" content="696f6a1fc0ab25addaaaf7a7" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
         <meta name="theme-color" content="#0A0E27" />
         <meta name="mobile-web-app-capable" content="yes" />
