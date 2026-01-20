@@ -48,6 +48,41 @@ export default function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html: `
+              // CRITICAL: Call ready() immediately to prevent Farcaster from redirecting to external browser
+              // This must run before React hydrates
+              (function() {
+                if (typeof window !== 'undefined' && window.farcaster && window.farcaster.actions) {
+                  try {
+                    window.farcaster.actions.ready();
+                  } catch (e) {
+                    // SDK might not be fully loaded yet, but we tried
+                  }
+                }
+                
+                // Also poll for SDK availability and call ready() when available
+                let readyCalled = false;
+                const checkReady = setInterval(function() {
+                  if (readyCalled) {
+                    clearInterval(checkReady);
+                    return;
+                  }
+                  if (typeof window !== 'undefined' && window.farcaster && window.farcaster.actions) {
+                    try {
+                      window.farcaster.actions.ready();
+                      readyCalled = true;
+                      clearInterval(checkReady);
+                    } catch (e) {
+                      // Continue polling
+                    }
+                  }
+                }, 50); // Check every 50ms
+                
+                // Stop polling after 2 seconds
+                setTimeout(function() {
+                  clearInterval(checkReady);
+                }, 2000);
+              })();
+              
               // Suppress extension-related errors
               window.addEventListener('error', function(e) {
                 if (e.message && (

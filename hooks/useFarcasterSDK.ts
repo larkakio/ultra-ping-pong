@@ -26,13 +26,26 @@ export function useFarcasterSDK() {
       // Check for Farcaster SDK - it's injected by Farcaster clients
       if (typeof window !== 'undefined' && window.farcaster && mountedRef.current && !isSDKLoadedRef.current) {
         try {
-          const ctx = await window.farcaster.context;
-          if (mountedRef.current && !isSDKLoadedRef.current) {
-            setContext(ctx);
-            // CRITICAL: Signal that the app is ready - this keeps it in Farcaster app
+          // CRITICAL: Call ready() immediately, don't wait for context
+          // This prevents Farcaster from redirecting to external browser
+          if (window.farcaster.actions && window.farcaster.actions.ready) {
             window.farcaster.actions.ready();
-            isSDKLoadedRef.current = true;
-            setIsSDKLoaded(true);
+          }
+          
+          // Then try to get context (but don't wait for it)
+          try {
+            const ctx = await window.farcaster.context;
+            if (mountedRef.current && !isSDKLoadedRef.current) {
+              setContext(ctx);
+              isSDKLoadedRef.current = true;
+              setIsSDKLoaded(true);
+            }
+          } catch (ctxError) {
+            // Context might fail, but ready() was already called
+            if (mountedRef.current && !isSDKLoadedRef.current) {
+              isSDKLoadedRef.current = true;
+              setIsSDKLoaded(true);
+            }
           }
         } catch (error) {
           // Silently handle errors - SDK might not be available in all contexts
