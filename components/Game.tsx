@@ -55,7 +55,7 @@ export default function Game() {
     return aiHook.getAIPaddleX(currentX);
   }, [aiHook]);
   
-  const { gameState, startGame, pauseGame, resetGame, setPlayerDirection } = useGameLoop(
+  const { gameState, startGame, resetGame, setPlayerDirection } = useGameLoop(
     getAIPaddleX,
     soundEffects
   );
@@ -71,23 +71,17 @@ export default function Game() {
   // Keyboard controls - Left/Right for vertical orientation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Handle pause/resume with SPACE
-      if (e.key === ' ' || e.key === 'Space') {
-        e.preventDefault();
-        e.stopPropagation();
-        if (!gameState.isPlaying) {
-          startGame();
-        } else {
-          pauseGame(); // Toggle pause state
-        }
-        return;
-      }
-      
       // Handle paddle movement
       if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
         setPlayerDirection(-1);
       } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
         setPlayerDirection(1);
+      } else if (e.key === ' ' || e.key === 'Space') {
+        // Space to start game if not playing
+        if (!gameState.isPlaying) {
+          e.preventDefault();
+          startGame();
+        }
       }
     };
 
@@ -105,58 +99,10 @@ export default function Game() {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [gameState.isPlaying, setPlayerDirection, startGame, pauseGame]);
+  }, [gameState.isPlaying, setPlayerDirection, startGame]);
 
-  // Touch controls with double tap for pause
-  const lastTapRef = useRef<number>(0);
-  const lastTapXRef = useRef<number>(0);
-  const lastTapYRef = useRef<number>(0);
-
+  // Touch controls - simplified without pause
   const handleTouch = useCallback((e: React.TouchEvent | React.MouseEvent) => {
-    // Handle double tap for pause on mobile
-    if (isMobile && gameState.isPlaying && !gameState.gameOver && !gameState.isPaused) {
-      const now = Date.now();
-      const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
-      const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
-      
-      // Check for double tap (within 300ms and 50px distance)
-      if (now - lastTapRef.current < 300 && 
-          Math.abs(clientX - lastTapXRef.current) < 50 &&
-          Math.abs(clientY - lastTapYRef.current) < 50) {
-        e.preventDefault();
-        e.stopPropagation();
-        pauseGame();
-        lastTapRef.current = 0; // Reset to prevent triple tap
-        return;
-      }
-      
-      lastTapRef.current = now;
-      lastTapXRef.current = clientX;
-      lastTapYRef.current = clientY;
-    }
-    
-    // Handle resume on double tap when paused
-    if (isMobile && gameState.isPaused) {
-      const now = Date.now();
-      const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
-      const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
-      
-      if (now - lastTapRef.current < 300 && 
-          Math.abs(clientX - lastTapXRef.current) < 50 &&
-          Math.abs(clientY - lastTapYRef.current) < 50) {
-        e.preventDefault();
-        e.stopPropagation();
-        pauseGame(); // Toggle pause to resume
-        lastTapRef.current = 0;
-        return;
-      }
-      
-      lastTapRef.current = now;
-      lastTapXRef.current = clientX;
-      lastTapYRef.current = clientY;
-      return; // Don't move paddle when paused
-    }
-
     if (!gameState.isPlaying) {
       startGame();
       return;
@@ -168,7 +114,7 @@ export default function Game() {
     const canvasCenterX = canvasRect.left + canvasRect.width / 2;
     const direction = clientX < canvasCenterX ? -1 : 1;
     setPlayerDirection(direction);
-  }, [gameState.isPlaying, gameState.gameOver, gameState.isPaused, isMobile, startGame, pauseGame, setPlayerDirection]);
+  }, [gameState.isPlaying, startGame, setPlayerDirection]);
 
   const handleTouchEnd = useCallback(() => {
     setPlayerDirection(0);
@@ -235,7 +181,7 @@ export default function Game() {
           />
         )}
 
-        {/* Start/Pause Overlay */}
+        {/* Start Overlay */}
         {!gameState.isPlaying && !gameState.gameOver && (
           <div className="absolute inset-0 bg-cyber-bg/80 backdrop-blur-sm flex items-center justify-center">
             <div className="text-center space-y-6">
@@ -256,57 +202,8 @@ export default function Game() {
             </div>
           </div>
         )}
-
-        {/* Pause Overlay */}
-        {gameState.isPaused && (
-          <div className="absolute inset-0 bg-cyber-bg/80 backdrop-blur-sm flex items-center justify-center z-50">
-            <div className="text-center space-y-6">
-              <div className={`neon-yellow font-orbitron font-black ${isMobile ? 'text-3xl' : 'text-4xl'}`}>
-                PAUSED
-              </div>
-              <button
-                onClick={() => pauseGame()}
-                className={`neon-box-yellow px-8 py-4 rounded-lg font-orbitron font-bold
-                         text-cyber-yellow hover:bg-cyber-yellow/20 transition-all duration-300
-                         min-h-[44px] ${isMobile ? 'text-lg' : 'text-xl'}`}
-              >
-                RESUME
-              </button>
-              <div className={`text-cyber-cyan/50 font-orbitron ${isMobile ? 'text-xs' : 'text-sm'}`}>
-                {isMobile ? 'Tap RESUME or double tap to continue' : 'Press SPACE to resume'}
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
-      {/* Instructions */}
-      {gameState.isPlaying && !gameState.gameOver && (
-        <div className={`absolute left-1/2 transform -translate-x-1/2 text-center ${isMobile ? 'bottom-2' : 'bottom-4'}`}>
-          <div className={`text-cyber-cyan/50 font-orbitron ${isMobile ? 'text-xs' : 'text-sm'}`}>
-            {gameState.isPaused 
-              ? (isMobile ? 'Double tap to resume' : 'Press SPACE to resume')
-              : (isMobile ? 'Double tap to pause' : 'Press SPACE to pause')
-            }
-          </div>
-        </div>
-      )}
-
-      {/* Pause Button for Mobile */}
-      {isMobile && gameState.isPlaying && !gameState.gameOver && !gameState.isPaused && (
-        <button
-          onClick={() => pauseGame()}
-          className="fixed bottom-20 right-4 z-50 px-4 py-3 rounded-lg
-                     bg-cyber-dark/80 border-2 border-cyber-yellow text-cyber-yellow
-                     font-orbitron font-bold text-sm
-                     hover:bg-cyber-yellow/20 transition-all duration-300
-                     min-h-[44px] min-w-[80px]
-                     neon-box-yellow"
-          aria-label="Pause game"
-        >
-          ⏸ PAUSE
-        </button>
-      )}
       
       {/* Sound Toggle */}
       <SoundToggle

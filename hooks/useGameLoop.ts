@@ -9,7 +9,6 @@ interface GameState {
   playerScore: number;
   aiScore: number;
   isPlaying: boolean;
-  isPaused: boolean;
   gameOver: boolean;
   winner: 'player' | 'ai' | null;
 }
@@ -30,9 +29,9 @@ export function useGameLoop(
     return {
       ball: resetBall(),
       playerPaddle: {
-        // Player at bottom edge, horizontal paddle
+        // Player at bottom edge, horizontal paddle - offset from bottom to ensure visibility
         x: canvasWidth / 2 - GAME_CONFIG.PADDLE_WIDTH / 2,
-        y: canvasHeight - GAME_CONFIG.PADDLE_HEIGHT, // At the very bottom
+        y: canvasHeight - GAME_CONFIG.PADDLE_HEIGHT - 10, // Offset 10px from bottom for visibility
         width: GAME_CONFIG.PADDLE_WIDTH,
         height: GAME_CONFIG.PADDLE_HEIGHT,
       },
@@ -46,7 +45,6 @@ export function useGameLoop(
       playerScore: 0,
       aiScore: 0,
       isPlaying: false,
-      isPaused: false,
       gameOver: false,
       winner: null,
     };
@@ -67,7 +65,6 @@ export function useGameLoop(
       return {
         ...prev,
         isPlaying: true,
-        isPaused: false,
         gameOver: false,
         winner: null,
         playerScore: 0,
@@ -76,7 +73,7 @@ export function useGameLoop(
         playerPaddle: {
           ...prev.playerPaddle,
           x: canvasWidth / 2 - GAME_CONFIG.PADDLE_WIDTH / 2,
-          y: canvasHeight - GAME_CONFIG.PADDLE_HEIGHT,
+          y: canvasHeight - GAME_CONFIG.PADDLE_HEIGHT - 10, // Offset 10px from bottom
         },
         aiPaddle: {
           ...prev.aiPaddle,
@@ -87,13 +84,6 @@ export function useGameLoop(
     });
   }, []);
 
-  const pauseGame = useCallback(() => {
-    setGameState((prev) => ({
-      ...prev,
-      isPaused: !prev.isPaused,
-    }));
-  }, []);
-
   const resetGame = useCallback(() => {
     const canvasWidth = typeof window !== 'undefined' ? window.innerWidth : 600;
     const canvasHeight = typeof window !== 'undefined' ? window.innerHeight : 900;
@@ -101,7 +91,6 @@ export function useGameLoop(
     setGameState((prev) => ({
       ...prev,
       isPlaying: false,
-      isPaused: false,
       gameOver: false,
       winner: null,
       playerScore: 0,
@@ -110,7 +99,7 @@ export function useGameLoop(
       playerPaddle: {
         ...prev.playerPaddle,
         x: canvasWidth / 2 - GAME_CONFIG.PADDLE_WIDTH / 2,
-        y: canvasHeight - GAME_CONFIG.PADDLE_HEIGHT,
+        y: canvasHeight - GAME_CONFIG.PADDLE_HEIGHT - 10, // Offset 10px from bottom
       },
       aiPaddle: {
         ...prev.aiPaddle,
@@ -131,8 +120,8 @@ export function useGameLoop(
       
       // Get current state from ref to avoid stale closures
       setGameState((prevState) => {
-        // Check if game should be paused or stopped
-        if (!prevState.isPlaying || prevState.isPaused || prevState.gameOver) {
+        // Check if game should be stopped
+        if (!prevState.isPlaying || prevState.gameOver) {
           return prevState; // Return unchanged state
         }
 
@@ -269,7 +258,6 @@ export function useGameLoop(
   return {
     gameState,
     startGame,
-    pauseGame,
     resetGame,
     setPlayerDirection,
   };
