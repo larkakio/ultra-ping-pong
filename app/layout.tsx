@@ -1,9 +1,11 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { Providers } from './providers';
 
 export const metadata: Metadata = {
   title: 'Ultra Ping Pong - Cyberpunk Pong',
-  description: 'Futuristic neon Pong game with cyberpunk aesthetics. Play against AI in this retro-futuristic arcade experience on Base.',
+  description:
+    'Futuristic neon Pong game with cyberpunk aesthetics. Play against AI in this retro-futuristic arcade experience on Base.',
 };
 
 export default function RootLayout({
@@ -20,15 +22,11 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        
-        {/* Farcaster Meta Tags for Discovery and In-App Opening */}
-        <meta property="fc:frame" content='{"version":"1","name":"Ultra Ping Pong"}' />
         <meta property="og:title" content="Ultra Ping Pong - Cyberpunk Pong" />
         <meta property="og:description" content="Futuristic cyberpunk Pong game with neon aesthetics. Challenge AI in this retro-futuristic arcade experience on Base." />
         <meta property="og:image" content="https://ultra-ping-pong.vercel.app/hero-image.svg" />
         <meta property="og:url" content="https://ultra-ping-pong.vercel.app/" />
         <meta property="og:type" content="website" />
-        <meta name="farcaster:frame" content='{"version":"1","name":"Ultra Ping Pong"}' />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Ultra Ping Pong - Cyberpunk Pong" />
         <meta name="twitter:description" content="Futuristic cyberpunk Pong game with neon aesthetics. Challenge AI in this retro-futuristic arcade experience on Base." />
@@ -36,79 +34,12 @@ export default function RootLayout({
         <link rel="icon" href="/icon.png" type="image/png" />
         <link rel="apple-touch-icon" href="/icon.png" />
         <link rel="manifest" href="/manifest.json" />
-        
-        {/* Google Fonts - Orbitron для cyberpunk тексту */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet" />
-        
-        {/* Farcaster Frame SDK is automatically injected by Farcaster clients (e.g., Warpcast) when opened in Frame context */}
       </head>
       <body className="bg-[#0A0E27] overflow-hidden">
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              // CRITICAL: Call ready() immediately to prevent Farcaster from redirecting to external browser
-              // This must run before React hydrates
-              (function() {
-                if (typeof window !== 'undefined' && window.farcaster && window.farcaster.actions) {
-                  try {
-                    window.farcaster.actions.ready();
-                  } catch (e) {
-                    // SDK might not be fully loaded yet, but we tried
-                  }
-                }
-                
-                // Also poll for SDK availability and call ready() when available
-                let readyCalled = false;
-                const checkReady = setInterval(function() {
-                  if (readyCalled) {
-                    clearInterval(checkReady);
-                    return;
-                  }
-                  if (typeof window !== 'undefined' && window.farcaster && window.farcaster.actions) {
-                    try {
-                      window.farcaster.actions.ready();
-                      readyCalled = true;
-                      clearInterval(checkReady);
-                    } catch (e) {
-                      // Continue polling
-                    }
-                  }
-                }, 50); // Check every 50ms
-                
-                // Stop polling after 2 seconds
-                setTimeout(function() {
-                  clearInterval(checkReady);
-                }, 2000);
-              })();
-              
-              // Suppress extension-related errors
-              window.addEventListener('error', function(e) {
-                if (e.message && (
-                  e.message.includes('chrome-extension://') ||
-                  e.message.includes('tronlinkParams') ||
-                  e.message.includes('Accessors and value') ||
-                  e.message.includes('property descriptor')
-                )) {
-                  e.preventDefault();
-                  return false;
-                }
-              }, true);
-              
-              // Suppress unhandled promise rejections from extensions
-              window.addEventListener('unhandledrejection', function(e) {
-                if (e.reason && (
-                  String(e.reason).includes('chrome-extension://') ||
-                  String(e.reason).includes('tronlinkParams')
-                )) {
-                  e.preventDefault();
-                }
-              });
-            `,
-          }}
-        />
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

@@ -18,19 +18,8 @@ import SoundToggle from './SoundToggle';
 export default function Game() {
   const soundEffects = useSound(true);
   const { canvasWidth, canvasHeight, scale, isMobile } = useResponsiveSize();
-  const { isSDKLoaded } = useFarcasterSDK(); // Initialize Farcaster SDK - this calls ready() automatically
-  
-  // Ensure Farcaster SDK ready() is called early to prevent external browser opening
-  useEffect(() => {
-    // Call ready() immediately if SDK is available
-    if (typeof window !== 'undefined' && window.farcaster?.actions) {
-      try {
-        window.farcaster.actions.ready();
-      } catch (e) {
-        // SDK might not be ready yet
-      }
-    }
-  }, [isSDKLoaded]);
+  useFarcasterSDK();
+
   
   // Use refs to track current game state for AI
   const gameStateRef = useRef<any>(null);

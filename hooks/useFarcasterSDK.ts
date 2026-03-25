@@ -1,126 +1,30 @@
-import { useEffect, useState, useRef } from 'react';
+'use client';
 
-// Type definitions for Farcaster SDK
-declare global {
-  interface Window {
-    farcaster?: {
-      context: Promise<any>;
-      actions: {
-        ready: () => void;
-        openUrl: (url: string) => void;
-      };
-    };
-  }
-}
+import { useAccount } from 'wagmi';
+import { useEffect, useState } from 'react';
 
 export function useFarcasterSDK() {
-  const [isSDKLoaded, setIsSDKLoaded] = useState(false);
-  const [context, setContext] = useState<any>(null);
-  const isSDKLoadedRef = useRef(false);
-  const mountedRef = useRef(true);
+  const { address } = useAccount();
+  const [isSDKLoaded, setIsSDKLoaded] = useState(true);
 
   useEffect(() => {
-    mountedRef.current = true;
-    
-    const load = async () => {
-      // Check for Farcaster SDK - it's injected by Farcaster clients
-      if (typeof window !== 'undefined' && window.farcaster && mountedRef.current && !isSDKLoadedRef.current) {
-        try {
-          // CRITICAL: Call ready() immediately, don't wait for context
-          // This prevents Farcaster from redirecting to external browser
-          if (window.farcaster.actions && window.farcaster.actions.ready) {
-            window.farcaster.actions.ready();
-          }
-          
-          // Then try to get context (but don't wait for it)
-          try {
-            const ctx = await window.farcaster.context;
-            if (mountedRef.current && !isSDKLoadedRef.current) {
-              setContext(ctx);
-              isSDKLoadedRef.current = true;
-              setIsSDKLoaded(true);
-            }
-          } catch (ctxError) {
-            // Context might fail, but ready() was already called
-            if (mountedRef.current && !isSDKLoadedRef.current) {
-              isSDKLoadedRef.current = true;
-              setIsSDKLoaded(true);
-            }
-          }
-        } catch (error) {
-          // Silently handle errors - SDK might not be available in all contexts
-          if (mountedRef.current) {
-            console.log('Farcaster SDK not available in this context');
-          }
-        }
-      }
-    };
-    
-    // Try loading immediately - critical for Farcaster to open in-app
-    load();
-    
-    // Also try after short delays - SDK might load asynchronously
-    const timer1 = setTimeout(load, 100);
-    const timer2 = setTimeout(load, 500);
-    
-    // Poll for SDK availability (Farcaster might inject it later)
-    let pollCount = 0;
-    const maxPolls = 10; // Limit polling to prevent infinite loops
-    const pollInterval = setInterval(() => {
-      pollCount++;
-      if (pollCount >= maxPolls || isSDKLoadedRef.current) {
-        clearInterval(pollInterval);
-        return;
-      }
-      if (typeof window !== 'undefined' && window.farcaster && mountedRef.current) {
-        load();
-      }
-    }, 1000);
-    
-    return () => {
-      mountedRef.current = false;
-      clearTimeout(timer1);
-      clearTimeout(timer2);
-      clearInterval(pollInterval);
-    };
-  }, []); // Empty dependency array - only run once on mount
+    setIsSDKLoaded(true);
+  }, []);
 
-  const openUrl = (url: string) => {
-    if (isSDKLoaded && typeof window !== 'undefined' && window.farcaster) {
-      try {
-        window.farcaster.actions.openUrl(url); // НЕ window.open()!
-      } catch (error) {
-        window.open(url, '_blank');
-      }
-    } else {
-      window.open(url, '_blank');
-    }
+  const shareScore = (playerScore: number, aiScore: number) => {
+    const text = encodeURIComponent(
+      `Ultra Ping Pong — Player ${playerScore} : AI ${aiScore}\n${typeof window !== 'undefined' ? window.location.href : ''}`
+    );
+    window.open(`https://warpcast.com/~/compose?text=${text}`, '_blank', 'noopener,noreferrer');
   };
 
-  const shareScore = async (score: number, opponentScore: number) => {
-    const text = `I scored ${score}-${opponentScore} in Ultra Ping Pong! 🎮✨ Can you beat me?`;
-    const url = typeof window !== 'undefined' ? window.location.href : '';
-    
-    if (isSDKLoaded && typeof window !== 'undefined' && window.farcaster) {
-      try {
-        window.farcaster.actions.openUrl(
-          `https://warpcast.com/~/compose?text=${encodeURIComponent(text)}&embeds[]=${encodeURIComponent(url)}`
-        );
-      } catch (error) {
-        if (typeof navigator !== 'undefined' && navigator.share) {
-          await navigator.share({ title: 'Ultra Ping Pong', text, url });
-        } else if (typeof navigator !== 'undefined' && navigator.clipboard) {
-          await navigator.clipboard.writeText(`${text} ${url}`);
-          alert('Score copied to clipboard!');
-        }
-      }
-    } else if (typeof navigator !== 'undefined' && navigator.share) {
-      await navigator.share({ title: 'Ultra Ping Pong', text, url });
-    } else if (typeof navigator !== 'undefined' && navigator.clipboard) {
-      await navigator.clipboard.writeText(`${text} ${url}`);
-      alert('Score copied to clipboard!');
-    }
+  return {
+    isSDKLoaded,
+    context: address
+      ? { user: { displayName: `${address.slice(0, 6)}…${address.slice(-4)}` } }
+      : null,
+    openUrl: (url: string) => window.open(url, '_blank', 'noopener,noreferrer'),
+    shareToFarcaster: (url: string) => window.open(url, '_blank', 'noopener,noreferrer'),
+    shareScore,
   };
-
-  return { isSDKLoaded, context, openUrl, shareScore };
 }
