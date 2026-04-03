@@ -3,6 +3,8 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { type ReactNode, useState } from "react";
 import { WagmiProvider } from "wagmi";
+import { DailyCheckIn } from "@/components/DailyCheckIn";
+import { WrongNetworkBanner } from "@/components/WrongNetworkBanner";
 import { wagmiConfig } from "./wagmi.config";
 
 export function Providers({ children }: { children: ReactNode }) {
@@ -10,7 +12,11 @@ export function Providers({ children }: { children: ReactNode }) {
 
   return (
     <WagmiProvider config={wagmiConfig}>
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      <QueryClientProvider client={queryClient}>
+        <WrongNetworkBanner />
+        {children}
+        <DailyCheckIn />
+      </QueryClientProvider>
     </WagmiProvider>
   );
 }
